@@ -25,6 +25,8 @@ from .models.account.feature import AccountFeature
 from requests.exceptions import HTTPError
 from pprint import pprint # noqa
 import requests
+from urllib.request import Request, urlopen
+from urllib.parse import urlencode
 import sys
 
 if sys.version_info > (3, 0):
@@ -34,6 +36,7 @@ else:
 
 
 HEROKU_URL = 'https://api.heroku.com'
+HEROKU_ALPHA_URL = 'https://dashboard.heroku.com'
 
 
 class RateLimitExceeded(Exception):
@@ -220,13 +223,12 @@ class HerokuCore(object):
         if map is None:
             map = KeyedListResource
 
-        list_resource = list(map(items=items))
+        list_resource = map(items=items)
         list_resource._h = self
         list_resource._obj = obj
         list_resource._kwargs = kwargs
 
         return list_resource
-
 
 class Heroku(HerokuCore):
     """The main Heroku class."""
@@ -488,6 +490,110 @@ class Heroku(HerokuCore):
     @property
     def last_request_id(self):
         return self._last_request_id
+
+class HerokuAlpha(Heroku):
+    _heroku_alpha_url = HEROKU_ALPHA_URL
+    """The Alpha API Heroku class."""
+    def __init__(self, session=None):
+        super(HerokuAlpha, self).__init__(session=session)
+
+    def __repr__(self):
+        return '<heroku-alpha-client at 0x%x>' % (id(self))
+
+    @staticmethod
+    def _resource_alpha_serialize(o):
+        return json.dumps(o).encode('utf8')
+
+    def _url_for_alpha(self, *args):
+        args = list(map(str, args))
+        return '/'.join([self._heroku_alpha_url] + list(args))
+
+    def _get_headers_for_alpha_request(self, method, url, legacy=False, order_by=None, limit=None, valrange=None, sort=None):
+        headers = super(HerokuAlpha, self)._get_headers_for_request(method, url, legacy, order_by, limit, valrange, sort)
+        headers.update({'Authorization': 'Bearer {0}'.format(self._api_key)})
+        headers.update({'Accept': "application/vnd.heroku+json; version=3"})
+        headers.update({'Content-Type': 'application/json'})
+        return headers
+
+    def _http_alpha_resource(self, method, resource, params=None, data=None, legacy=False, order_by=None, limit=None, valrange=None, sort=None):
+        """Makes an HTTP request."""
+
+        if not is_collection(resource):
+            resource = [resource]
+
+        url = self._url_for_alpha(*resource)
+
+        headers = self._get_headers_for_alpha_request(method, url, legacy=legacy, order_by=order_by, limit=limit, valrange=valrange, sort=sort)
+
+        request = Request(url, data, headers, method=method)
+
+        r = urlopen(request)
+
+        if 'ratelimit-remaining' in r.headers:
+            self._ratelimit_remaining = r.headers['ratelimit-remaining']
+
+        if 'Request-Id' in r.headers:
+            self._last_request_id = r.headers['Request-Id']
+
+        if r.status == 422:
+            http_error = HTTPError('%s - %s Client Error: %s' %
+                                   (self._last_request_id, r.status, r.content.decode("utf-8")))
+            http_error.response = r
+            raise http_error
+
+        if r.status == 429:
+            raise RateLimitExceeded("You have exceeded your rate limit \n{0}".format(r.content.decode("utf-8")))
+
+        if (not str(r.status).startswith('2')) and (not r.status in [304]):
+            pass
+        return r
+
+    def connect_github_repo(self, app_id_or_name, repo_name):
+        data = {
+            'repo': repo_name
+        }
+        payload = self._resource_alpha_serialize(data)
+        r = self._http_alpha_resource(
+            method='POST',
+            resource=('alpha-api', 'github', app_id_or_name, 'link'),
+            data=payload
+        )
+        item = self._resource_deserialize(r.read().decode("utf-8"))
+        return item["id"]
+
+    def enable_github_repo_autodeploy(self, app_id_or_name, repo_name, repo_id, branch_name):
+        data = {
+            'auto_deploy': True,
+            'branch': branch_name,
+            'pull_requests': {
+                'auto_deploy': False,
+                'copy_db': False,
+                'enabled': False
+            },
+            'repo_name': repo_name,
+            'wait_for_ci': False
+        }
+        payload = self._resource_alpha_serialize(data)
+        r = self._http_alpha_resource(
+            method='PATCH',
+            resource=('alpha-api', 'github', app_id_or_name, 'link', repo_id),
+            data=payload
+        )
+        item = self._resource_deserialize(r.read().decode("utf-8"))
+        return item["id"]
+
+    def deploy_github_branch(self, app_id_or_name, branch_name):
+        data = {
+            'branch': branch_name,
+        }
+        payload = self._resource_alpha_serialize(data)
+        r = self._http_alpha_resource(
+            method='POST',
+            resource=('alpha-api', 'github', app_id_or_name, 'push'),
+            data=payload
+        )
+        item = self._resource_deserialize(r.read().decode("utf-8"))
+        return item["build"]["id"]
 
 
 class ResponseError(ValueError):

@@ -7,11 +7,11 @@ heroku3.core
 This module provides the base entrypoint for heroku3.py.
 """
 
-from .api import Heroku
+from .api import Heroku, HerokuAlpha
 import requests
 
 
-def from_key(api_key, session=None, **kwargs):
+def from_key(api_key, session=None, alpha_api=False, **kwargs):
     """Returns an authenticated Heroku instance, via API Key."""
     if not session:
         session = requests.session()
@@ -19,7 +19,10 @@ def from_key(api_key, session=None, **kwargs):
     # if trust_env=True then Heroku will silently fallback to netrc authentication
 
     session.trust_env = False
-    h = Heroku(session=session, **kwargs)
+    if alpha_api:
+        h = HerokuAlpha(session=session, **kwargs)
+    else:
+        h = Heroku(session=session, **kwargs)
 
     # Login.
     h.authenticate(api_key)
