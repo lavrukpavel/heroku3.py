@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 
-u"""
+"""
 heroku3.helpers
 ~~~~~~~~~~~~~~
 
 This module contians the helpers.
 """
 
-from __future__ import absolute_import
 from datetime import datetime
 
 from dateutil.parser import parse as parse_datetime
@@ -15,13 +14,13 @@ from dateutil.parser import parse as parse_datetime
 import sys
 
 if sys.version_info > (3, 0):
-    basestring = (unicode, str)
+    basestring = (str, bytes)
 
 
 def is_collection(obj):
-    u"""Tests if an object is a collection."""
+    """Tests if an object is a collection."""
 
-    col = getattr(obj, u'__getitem__', False)
+    col = getattr(obj, '__getitem__', False)
     val = False if (not col) else True
 
     if isinstance(obj, basestring):
@@ -41,7 +40,7 @@ def to_python(obj,
     bool_keys=None,
     dict_keys=None,
     **kwargs):
-    u"""Extends a given object for API Consumption.
+    """Extends a given object for API Consumption.
 
     :param obj: Object to extend.
     :param in_dict: Dict to extract data from.
@@ -62,7 +61,7 @@ def to_python(obj,
             if in_date is not None:
                 try:
                     out_date = parse_datetime(in_date)
-                except TypeError, e:
+                except TypeError as e:
                     raise e
                     out_date = None
 
@@ -107,7 +106,7 @@ def to_python(obj,
 
 # from kennethreitz/python-github3
 def to_api(in_dict, int_keys=None, date_keys=None, bool_keys=None):
-    u"""Extends a given object for API Production."""
+    """Extends a given object for API Production."""
 
     # Cast all int_keys to int()
     if int_keys:
