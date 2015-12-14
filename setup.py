@@ -23,7 +23,7 @@ required = [
 
 setup(
     name='heroku3',
-    version='3.1.3',
+    version='3.1.4',
     description='Heroku API Wrapper.',
     long_description=open('README.rst').read() + '\n\n' +
                      open('HISTORY.rst').read(),
@@ -42,9 +42,9 @@ setup(
         'Natural Language :: English',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2.6',
-        'Programming Language :: Python :: 2.7',
-        # 'Programming Language :: Python :: 3.0',
-        # 'Programming Language :: Python :: 3.1',
+        #'Programming Language :: Python :: 2.6',
+        #'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.0',
+        'Programming Language :: Python :: 3.1',
     ),
 )
