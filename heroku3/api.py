@@ -36,7 +36,7 @@ else:
 
 
 HEROKU_URL = 'https://api.heroku.com'
-HEROKU_ALPHA_URL = 'https://dashboard.heroku.com'
+HEROKU_ALPHA_URL = 'https://kolkrabbi.herokuapp.com'
 
 
 class RateLimitExceeded(Exception):
@@ -522,9 +522,9 @@ class HerokuAlpha(Heroku):
             resource = [resource]
 
         url = self._url_for_alpha(*resource)
-
+        print(url)
         headers = self._get_headers_for_alpha_request(method, url, legacy=legacy, order_by=order_by, limit=limit, valrange=valrange, sort=sort)
-
+        print(headers)
         request = Request(url, data, headers, method=method)
 
         r = urlopen(request)
@@ -555,7 +555,7 @@ class HerokuAlpha(Heroku):
         payload = self._resource_alpha_serialize(data)
         r = self._http_alpha_resource(
             method='POST',
-            resource=('alpha-api', 'github', app_id_or_name, 'link'),
+            resource=('apps', app_id_or_name, 'github'),
             data=payload
         )
         item = self._resource_deserialize(r.read().decode("utf-8"))
@@ -576,7 +576,7 @@ class HerokuAlpha(Heroku):
         payload = self._resource_alpha_serialize(data)
         r = self._http_alpha_resource(
             method='PATCH',
-            resource=('alpha-api', 'github', app_id_or_name, 'link', repo_id),
+            resource=('apps', app_id_or_name, 'github', repo_id),
             data=payload
         )
         item = self._resource_deserialize(r.read().decode("utf-8"))
@@ -589,7 +589,7 @@ class HerokuAlpha(Heroku):
         payload = self._resource_alpha_serialize(data)
         r = self._http_alpha_resource(
             method='POST',
-            resource=('alpha-api', 'github', app_id_or_name, 'push'),
+            resource=('apps', app_id_or_name, 'github', 'push'),
             data=payload
         )
         item = self._resource_deserialize(r.read().decode("utf-8"))
