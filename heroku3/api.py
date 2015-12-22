@@ -570,13 +570,13 @@ class HerokuAlpha(Heroku):
                 'copy_db': False,
                 'enabled': False
             },
-            'repo_name': repo_name,
+            'repo': repo_name,
             'wait_for_ci': False
         }
         payload = self._resource_alpha_serialize(data)
         r = self._http_alpha_resource(
             method='PATCH',
-            resource=('apps', app_id_or_name, 'github', repo_id),
+            resource=('apps', app_id_or_name, 'github'),
             data=payload
         )
         item = self._resource_deserialize(r.read().decode("utf-8"))
