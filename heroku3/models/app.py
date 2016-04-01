@@ -13,6 +13,7 @@ from .logdrain import LogDrain
 from .logsession import LogSession
 from .region import Region
 from .release import Release
+from .slug import Slug
 
 from pprint import pprint # NOQA
 import sys
@@ -451,6 +452,20 @@ class App(BaseResource):
         return self._h._get_resources(
             resource=('apps', self.name, 'releases'),
             obj=Release, app=self, **kwargs
+        )
+
+    def slugs(self, **kwargs):
+        """The slugs for this app."""
+        return self._h._get_resources(
+            resource=('apps', self.name, 'slugs'),
+            obj=Slug, app=self, **kwargs
+        )
+
+    def slug(self, id, **kwargs):
+        """A slug for this app."""
+        return self._h._get_resource(
+            resource=('apps', self.name, 'slugs', id),
+            obj=Slug, app=self, **kwargs
         )
 
     def rollback(self, release):
