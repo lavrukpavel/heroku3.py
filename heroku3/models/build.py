@@ -1,6 +1,7 @@
 from . import BaseResource
 from . import User
 from .buildpack import Buildpack
+from .buildresult import BuildResult
 
 class Build(BaseResource):
     _dates = ['created_at','updated_at']
@@ -15,3 +16,8 @@ class Build(BaseResource):
     def __repr__(self):
         return "<build '{0} - {1}'>".format(self.id, self.status)
 
+    def result(self, **kwargs):
+        return self._h._get_resource(
+            resource=('apps', self.app.name, 'builds', self.id, 'result'),
+            obj=BuildResult, app=self, **kwargs
+        )

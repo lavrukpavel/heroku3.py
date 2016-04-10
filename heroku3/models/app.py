@@ -58,6 +58,34 @@ class App(BaseResource):
             obj=Build, app=self, **kwargs
         )
 
+    def build(self, id, **kwargs):
+        """
+        Returns a list of application builds as Build objects
+        """
+        return self._h._get_resource(
+            resource=('apps', self.name, 'builds', id),
+            obj=Build, app=self, **kwargs
+        )
+
+    def create_build(self, url, **kwargs):
+        """
+        Creates a new build.
+        """
+        payload = {
+            'source_blob': {
+                'url': url,
+            }
+        }
+
+        r = self._h._http_resource(
+            method='POST',
+            resource=('apps', self.name, 'builds'),
+            data=self._h._resource_serialize(payload)
+        )
+
+        item = self._h._resource_deserialize(r.content.decode("utf-8"))
+        return Build.new_from_dict(item, h=self._h, app=self)
+
     def delete(self):
         """
         Destroys the current app
