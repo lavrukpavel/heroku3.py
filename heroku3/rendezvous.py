@@ -1,3 +1,4 @@
+import six
 import socket
 import select
 import ssl
@@ -18,9 +19,11 @@ class Rendezvous():
         self.hostname = urlp.hostname
         self.port = urlp.port
         self.secret = urlp.path[1:]
+        if six.PY3:
+            self.secret = str.encode(self.secret)
         path = os.path.dirname(os.path.realpath(__file__))
         self.cert = os.path.abspath("{0}/data/cacert.pem".format(path))
-        self.data = ""
+        self.data = six.b("")
         self.printout = printout
 
     def start(self):
@@ -39,7 +42,11 @@ class Rendezvous():
         ssl_sock.connect((self.hostname, self.port))
         ssl_sock.write(self.secret)
         data = ssl_sock.read()
-        if not data.startswith("rendezvous"):
+        # if six.PY3:
+        #     import pdb; pdb.set_trace()
+        #     if isinstance(data, str):
+        #         data = str.encode(data)
+        if not data.startswith(six.b("rendezvous")):
             raise InvalidResponseFromRendezVous("The Response from the rendezvous server wasn't as expected. Response was - {0}".format(data))
         while True:
             r, w, e = select.select([ssl_sock], [], [])
