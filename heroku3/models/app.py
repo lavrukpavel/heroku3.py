@@ -68,13 +68,14 @@ class App(BaseResource):
             obj=Build, app=self, **kwargs
         )
 
-    def create_build(self, url, **kwargs):
+    def create_build(self, url, version, **kwargs):
         """
         Creates a new build.
         """
         payload = {
             'source_blob': {
                 'url': url,
+                'version': version,
             }
         }
 
