@@ -94,6 +94,8 @@ def to_python(obj,
             if in_dict.get(k):
                 d[k] = [ v.new_from_dict(i) for i in in_dict.get(k)]
 
+    d['_in_dict'] = in_dict
+
     obj.__dict__.update(d)
     obj.__dict__.update(kwargs)
 

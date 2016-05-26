@@ -4,6 +4,7 @@ from ..structures import DynoListResource
 
 from .addon import Addon
 from .build import Build
+from .source import Source
 from .collaborator import Collaborator
 from .configvars import ConfigVars
 from .domain import Domain
@@ -13,6 +14,7 @@ from .logdrain import LogDrain
 from .logsession import LogSession
 from .region import Region
 from .release import Release
+from .slug import Slug
 
 from pprint import pprint # NOQA
 import sys
@@ -56,6 +58,50 @@ class App(BaseResource):
             resource=('apps', self.name, 'builds'),
             obj=Build, app=self, **kwargs
         )
+
+    def build(self, id, **kwargs):
+        """
+        Returns a list of application builds as Build objects
+        """
+        return self._h._get_resource(
+            resource=('apps', self.name, 'builds', id),
+            obj=Build, app=self, **kwargs
+        )
+
+    def create_build(self, url, version, **kwargs):
+        """
+        Creates a new build.
+        """
+        payload = {
+            'source_blob': {
+                'url': url,
+                'version': version,
+            }
+        }
+
+        r = self._h._http_resource(
+            method='POST',
+            resource=('apps', self.name, 'builds'),
+            data=self._h._resource_serialize(payload)
+        )
+
+        item = self._h._resource_deserialize(r.content.decode("utf-8"))
+        return Build.new_from_dict(item, h=self._h, app=self)
+
+    def create_source(self, **kwargs):
+        """
+        Creates a new source.
+        """
+        payload = {}
+
+        r = self._h._http_resource(
+            method='POST',
+            resource=('apps', self.name, 'sources'),
+            data=self._h._resource_serialize(payload)
+        )
+
+        item = self._h._resource_deserialize(r.content.decode("utf-8"))
+        return Source.new_from_dict(item, h=self._h, app=self)
 
     def delete(self):
         """
@@ -193,6 +239,12 @@ class App(BaseResource):
         return self._h._get_resources(
             resource=('apps', self.name, 'dynos'),
             obj=Dyno, app=self, map=DynoListResource, **kwargs
+        )
+
+    def dyno(self, id, **kwargs):
+        return self._h._get_resource(
+            resource=('apps', self.name, 'dynos', id),
+            obj=Dyno, app=self, **kwargs
         )
 
     def kill_dyno(self, dyno_id_or_name):
@@ -452,6 +504,33 @@ class App(BaseResource):
             resource=('apps', self.name, 'releases'),
             obj=Release, app=self, **kwargs
         )
+
+    def slugs(self, **kwargs):
+        """The slugs for this app."""
+        return self._h._get_resources(
+            resource=('apps', self.name, 'slugs'),
+            obj=Slug, app=self, **kwargs
+        )
+
+    def slug(self, id, **kwargs):
+        """A slug for this app."""
+        return self._h._get_resource(
+            resource=('apps', self.name, 'slugs', id),
+            obj=Slug, app=self, **kwargs
+        )
+
+    def copy_slug(self, slug_id, **kwargs):
+        payload = {
+            'slug': slug_id,
+        }
+        r = self._h._http_resource(
+            method='POST',
+            resource=('apps', self.name, 'releases'),
+            data=self._h._resource_serialize(payload)
+        )
+        r.raise_for_status()
+        item = self._h._resource_deserialize(r.content.decode("utf-8"))
+        return item
 
     def rollback(self, release):
         """Rolls back the release to the given version."""
