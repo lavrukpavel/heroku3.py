@@ -16,7 +16,7 @@ if sys.argv[-1] == 'publish':
 
 required = [
     'requests>=1.2.3',
-    'simplejson==3.3.1',
+    'simplejson==3.13.2',
     'python-dateutil==2.4.2'
 ]
 
